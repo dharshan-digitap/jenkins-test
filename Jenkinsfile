@@ -1,6 +1,6 @@
 node {
     stage('Build') {
-        echo 'hello build' > test.txt
+        sh 'echo "hello build" > test.txt'
     }
     post {
         success {
