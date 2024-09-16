@@ -2,7 +2,7 @@ node {
     stage('Build') {
         echo 'hello build' > test.txt
     }
-    post{
+    post {
         success {
             archiveArtifacts artifacts: 'test.txt'
         }
