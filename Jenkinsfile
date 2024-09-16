@@ -3,7 +3,7 @@ node {
         echo 'hello build' > test.txt
     }
     post{
-        'success':{
+        success:{
             archiveArtifacts artifacts: 'test.txt'
         }
     }
