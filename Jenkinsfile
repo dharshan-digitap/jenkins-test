@@ -1,4 +1,10 @@
 node {
+    def body = """\
+        <p>Build Status: ${currentBuild.currentResult}</p>
+        <p>Job Name: ${env.JOB_NAME}</p>
+        <p>Build Number: ${env.BUILD_NUMBER}</p>
+        <p>Check the full build details at: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+    """
     try{
         stage('Build') {
             // Printing build information
@@ -26,6 +32,7 @@ node {
     } finally {
         mail to: 'dharshan.s@digitap.ai',
              subject: "Build Notification: ${currentBuild.result}",
+             body: body,
              mimeType: 'text/html'
     }
 }
