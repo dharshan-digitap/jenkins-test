@@ -27,7 +27,7 @@ node {
         throw e
     } finally {
         // Send email notifications with the Email Extension Plugin
-        emailext subject: "Pipeline Build Notification: ${currentBuild.currentResult}"
+        emailext subject: "Pipeline Build Notification: ${currentBuild.currentResult}",
                  body: body,
                  to: recipient,
                  from: sender,
