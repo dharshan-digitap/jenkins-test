@@ -1,7 +1,7 @@
 node {
     def recipient = 'dharshan.s@digitap.ai'
     def sender = 'alerts@digitap.ai' // Specify the sender email address
-    def subject = "Pipeline Build Notification: ${currentBuild.result}"
+    def subject = "Pipeline Build Notification: ${currentBuild.currentResult}"
     def body = """\
         <p>Build Status: ${currentBuild.currentResult}</p>
         <p>Job Name: ${env.JOB_NAME}</p>
