@@ -2,11 +2,10 @@ node {
     stage('Build') {
         sh 'echo "hello build" > test.txt'
     }
-    post {
-        success {
+    if (currentBuild.result == null || currentBuild.result == 'SUCCESS') {
             archiveArtifacts artifacts: 'test.txt'
         }
-    }
+
     stage('Test') {
         echo 'hello test'
     }
