@@ -1,5 +1,5 @@
 node {
-    def recipient = ['dharshan.s@digitap.ai','pratik.patil@digitap.ai']
+    def recipient = 'dharshan.s@digitap.ai,pratik.patil@digitap.ai'
     def sender = 'alerts@digitap.ai' // Specify the sender email address
     def body = """\
         <p>Build Status: ${currentBuild.currentResult}</p>
