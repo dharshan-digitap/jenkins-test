@@ -1,7 +1,6 @@
 node {
     def recipient = 'dharshan.s@digitap.ai'
     def sender = 'alerts@digitap.ai' // Specify the sender email address
-//     def subject = "Pipeline Build Notification: ${currentBuild.currentResult}"
     def body = """\
         <p>Build Status: ${currentBuild.currentResult}</p>
         <p>Job Name: ${env.JOB_NAME}</p>
@@ -28,11 +27,12 @@ node {
         throw e
     } finally {
         // Send email notifications with the Email Extension Plugin
-        emailext body: body,
+        emailext subject: "Pipeline Build Notification: ${currentBuild.currentResult}"
+                 body: body,
                  to: recipient,
-                 from: sender, // Specify the sender email address here
-                 attachLog: true, // Attach build log
-                 attachmentsPattern: 'test.txt', // Attach the specific artifact
+                 from: sender,
+                 attachLog: true,
+                 attachmentsPattern: 'test.txt',
                  mimeType: 'text/html'
 
         // Archive artifacts
