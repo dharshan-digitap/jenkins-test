@@ -28,8 +28,7 @@ node {
         throw e
     } finally {
         // Send email notifications with the Email Extension Plugin
-        emailext subject: subject,
-                 body: body,
+        emailext body: body,
                  to: recipient,
                  from: sender, // Specify the sender email address here
                  attachLog: true, // Attach build log
