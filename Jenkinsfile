@@ -12,6 +12,7 @@ node {
     try {
         stage('Build') {
             sh 'echo "hello build" > test.txt'
+            currentBuild.result = 'SUCCESS'
         }
 
         stage('Test') {
