@@ -24,9 +24,8 @@ node {
          currentBuild.result = 'FAILURE'
          throw e
     } finally {
-         emailext subject: "Pipeline Build Notification : ${currentBuild.result}",
-                  to: 'dharshan.s@digitap.ai'
-//                   attachLog: true,
-//                   attachmentsPattern: 'test.txt'
+        mail to: 'dharshan.s@digitap.ai',
+             subject: "Build Notification: ${currentBuild.result}",
+             mimeType: 'text/html'
     }
 }
