@@ -12,7 +12,7 @@ node {
         def payload = jsonSlurper.parseText(env.PAYLOAD)
         echo "Repository Name: ${payload.repository.name}"
         echo "Branch Name: ${payload.pull_request.head.ref}"
-        echo "Commit SHA: ${payload.head_commit.id}"
+        echo "Commit SHA: ${payload.pull_request.head.sha}"
 
         // Extract required information
         def repoName = payload.repository.full_name
