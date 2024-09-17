@@ -16,7 +16,7 @@ node {
 
         // Extract required information
         def repoName = payload.repository.full_name
-        def commitSha = payload.head_commit.id
+        def commitSha = payload.pull_request.head.sha
         def buildStatus = currentBuild.currentResult.toLowerCase() // 'success' or 'failure'
         def statusMessage = buildStatus == 'success' ? 'Build succeeded, ready to merge!' : 'Build failed, please fix issues before merging.'
 
