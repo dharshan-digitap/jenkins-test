@@ -18,6 +18,7 @@ node {
 
     try {
         stage('Build Zip') {
+            sh 'ls'
             sh 'zip -r lambda_function.zip *'
         }
 
