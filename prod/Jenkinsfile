@@ -1,79 +1,79 @@
 timeout(time: 2, unit: 'MINUTES') {
-  node {
-    def recipient = 'dharshan.s@digitap.ai,pratik.patil@digitap.ai'
-    def sender = 'alerts@digitap.ai'
-    def body = """\
-        <p>Build Status: ${currentBuild.currentResult}</p>
-        <p>Job Name: ${env.JOB_NAME}</p>
-        <p>Build Number: ${env.BUILD_NUMBER}</p>
-        <p>Check the full build details at: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
-    """
+    node {
+        def recipient = 'dharshan.s@digitap.ai,pratik.patil@digitap.ai'
+        def sender = 'alerts@digitap.ai'
+        def body = """\
+            <p>Build Status: ${currentBuild.currentResult}</p>
+            <p>Job Name: ${env.JOB_NAME}</p>
+            <p>Build Number: ${env.BUILD_NUMBER}</p>
+            <p>Check the full build details at: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+        """
 
-    // Set environment variables
-    env.FUNCTION_NAME = 'helloworld-dev'
-    env.SIGNING_PROFILE = 'test_signing_profile'
-    env.BUCKET_NAME = 'code-signing-bucket'
-    env.TODAY_DATETIME = new Date().format('yyyy-MM-dd_HH:mm:ss')
-    env.BUCKET_KEY = "base_code/lambda_function_${env.TODAY_DATETIME}.zip"
+        // Set environment variables
+        env.FUNCTION_NAME = 'helloworld-dev'
+        env.SIGNING_PROFILE = 'test_signing_profile'
+        env.BUCKET_NAME = 'code-signing-bucket'
+        env.TODAY_DATETIME = new Date().format('yyyy-MM-dd_HH:mm:ss')
+        env.BUCKET_KEY = "base_code/lambda_function_${env.TODAY_DATETIME}.zip"
 
-    try {
-        stage('SCM') {
-          checkout scm
-        }
+        try {
+            stage('SCM') {
+                checkout scm
+            }
 
-        stage('Build Zip') {
-            sh 'zip -r lambda_function.zip *'
-        }
+            stage('Build Zip') {
+                sh 'zip -r lambda_function.zip *'
+            }
 
-        stage('Push to S3') {
-            sh """
-                aws s3api put-object \
-                --bucket ${env.BUCKET_NAME} \
-                --key ${env.BUCKET_KEY} \
-                --body lambda_function.zip
-            """
-            echo "Object URL: s3://${env.BUCKET_NAME}/${env.BUCKET_KEY}"
-        }
+            stage('Push to S3') {
+                sh """
+                    aws s3api put-object \
+                    --bucket ${env.BUCKET_NAME} \
+                    --key ${env.BUCKET_KEY} \
+                    --body lambda_function.zip
+                """
+                echo "Object URL: s3://${env.BUCKET_NAME}/${env.BUCKET_KEY}"
+            }
 
-        stage('Code Signing') {
-            def response = sh(script: """
-                aws signer start-signing-job \
-                --source "s3={bucketName=${env.BUCKET_NAME},key=${env.BUCKET_KEY},version='null'}" \
-                --destination "s3={bucketName=${env.BUCKET_NAME},prefix=signed_code/signed-}" \
-                --profile-name ${env.SIGNING_PROFILE}
+            stage('Code Signing') {
+                def response = sh(script: """
+                    aws signer start-signing-job \
+                    --source "s3={bucketName=${env.BUCKET_NAME},key=${env.BUCKET_KEY},version='null'}" \
+                    --destination "s3={bucketName=${env.BUCKET_NAME},prefix=signed_code/signed-}" \
+                    --profile-name ${env.SIGNING_PROFILE}
                 """, returnStdout: true)
 
-            def SIGNING_JOB_ID = sh(script: """
-                                echo "${response}" | grep '"jobId":' | cut -d'"' -f4
-                                """, returnStdout: true) // delimiter - " -> [f1:,][f2:jobId][f3::][f4-jobIdValue]
+                def SIGNING_JOB_ID = sh(script: """
+                    echo "${response}" | grep '"jobId":' | cut -d'"' -f4
+                """, returnStdout: true) // delimiter - " -> [f1:,][f2:jobId][f3::][f4-jobIdValue]
 
-            echo "Job ID: ${SIGNING_JOB_ID}"
+                echo "Job ID: ${SIGNING_JOB_ID}"
 
-            def SIGNED_OBJECT_KEY = "signed_code/signed-${env.TODAY_DATETIME}-${SIGNING_JOB_ID}.zip"
-            echo "Signed object url: ${SIGNED_OBJECT_KEY}"
+                def SIGNED_OBJECT_KEY = "signed_code/signed-${env.TODAY_DATETIME}-${SIGNING_JOB_ID}.zip"
+                echo "Signed object url: ${SIGNED_OBJECT_KEY}"
+            }
+
+            stage('OWASP Dependency Check') {
+                def dependencyCheckHome = tool 'OWASP Dependency-Check Vulnerabilities';
+                sh "${dependencyCheckHome}/bin/dependency-check.sh --project EV_UANSTACK --scan . --format HTML --out dependency-check-report.html"
+            }
+
+            stage('SonarQube Analysis') {
+                def scannerHome = tool 'SonarScanner';
+                withSonarQubeEnv() {
+                    sh "${scannerHome}/bin/sonar-scanner"
+                }
+            }
         }
-
-        stage('OWASP Dependency Check') {
-          def dependencyCheckHome = tool 'OWASP Dependency-Check Vulnerabilities';
-          sh "${dependencyCheckHome}/bin/dependency-check.sh --project EV_UANSTACK --scan . --format HTML --out dependency-check-report.html"
+        catch (Exception e) {
+            throw e
+        } finally {
+            emailext subject: "${env.JOB_NAME} Pipeline Results: ${currentBuild.currentResult}",
+                   body: body,
+                   to: recipient,
+                   from: sender,
+                   attachLog: true,
+                   mimeType: 'text/html'
         }
-        stage('SonarQube Analysis') {
-          def scannerHome = tool 'SonarScanner';
-          withSonarQubeEnv() {
-            sh "${scannerHome}/bin/sonar-scanner"
-          }
-        }
-  }
-  catch {
-    throw e
-  } finally {
-              emailext subject: "${env.JOB_NAME} Pipeline Results: ${currentBuild.currentResult}",
-                     body: body,
-                     to: recipient,
-                     from: sender,
-                     attachLog: true,
-                     mimeType: 'text/html'
-  }
-
-  }
+    }
 }
