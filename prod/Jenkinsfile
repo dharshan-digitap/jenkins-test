@@ -3,9 +3,10 @@ timeout(time: 2, unit: 'MINUTES') {
         def recipient = 'dharshan.s@digitap.ai,pratik.patil@digitap.ai'
         def sender = 'alerts@digitap.ai'
         def body = """\
-            <p>Build Status: ${currentBuild.currentResult}</p>
+            <p>Build Status: ${env.BUILD_STATUS}</p>
             <p>Job Name: ${env.JOB_NAME}</p>
             <p>Build Number: ${env.BUILD_NUMBER}</p>
+            <p>s3 signed object link at: <a href="${SIGNED_OBJECT_KEY_PATH}">${SIGNED_OBJECT_KEY_PATH}</a></p>
             <p>Check the full build details at: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
         """
 
@@ -22,6 +23,7 @@ timeout(time: 2, unit: 'MINUTES') {
             }
 
             stage('Build Zip') {
+
                 sh 'zip -r lambda_function.zip *'
             }
 
@@ -48,7 +50,7 @@ timeout(time: 2, unit: 'MINUTES') {
                 """, returnStdout: true) // delimiter - " -> [f1:,][f2:jobId][f3::][f4-jobIdValue]
 
                 echo "Job ID: ${SIGNING_JOB_ID}"
-
+                def SIGNED_OBJECT_KEY_PATH = "s3://${env.BUCKET_NAME}/signed_code/signed-${env.TODAY_DATETIME}-${SIGNING_JOB_ID}.zip"
                 def SIGNED_OBJECT_KEY = "signed_code/signed-${env.TODAY_DATETIME}-${SIGNING_JOB_ID}.zip"
                 echo "Signed object url: ${SIGNED_OBJECT_KEY}"
             }
@@ -77,3 +79,5 @@ timeout(time: 2, unit: 'MINUTES') {
         }
     }
 }
+
+
