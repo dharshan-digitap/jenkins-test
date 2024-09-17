@@ -1,7 +1,5 @@
 timeout(time: 2, unit: 'MINUTES') {
     node {
-        sh 'env'
-
         def recipient = 'dharshan.s@digitap.ai,pratik.patil@digitap.ai'
         def sender = 'alerts@digitap.ai'
         def body = """\
