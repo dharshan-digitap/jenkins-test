@@ -15,14 +15,13 @@ node {
         echo "Commit SHA: ${payload.head_commit.id}"
 
         // Extract required information
-        def repoName = payload.repository.name
-        def branchName = payload.ref.replace("refs/heads/", "")
+        def repoName = payload.repository.full_name
         def commitSha = payload.head_commit.id
         def buildStatus = currentBuild.currentResult.toLowerCase() // 'success' or 'failure'
         def statusMessage = buildStatus == 'success' ? 'Build succeeded, ready to merge!' : 'Build failed, please fix issues before merging.'
 
         // Define GitHub API URL
-        def githubApiUrl = "https://api.github.com/repos/${payload.repository.full_name}/statuses/${commitSha}"
+        def githubApiUrl = "https://api.github.com/repos/${repoName}/statuses/${commitSha}"
 
         // Set GitHub status context
         def context = 'ci/build'
@@ -41,12 +40,18 @@ node {
         // Notify GitHub using the API
         stage('Notify GitHub') {
             withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
-                sh """
-                curl -X POST -H "Authorization: token ${GITHUB_TOKEN}" \
-                    -H "Accept: application/vnd.github.v3+json" \
-                    -d '${jsonPayload}' \
-                    ${githubApiUrl}
-                """
+                script {
+                    // Write payload to a file to avoid serialization issues
+                    def file = new File("${JENKINS_HOME}/workspace/${JOB_NAME}/payload.json")
+                    file.text = jsonPayload
+
+                    sh """
+                    curl -X POST -H "Authorization: token ${GITHUB_TOKEN}" \
+                        -H "Accept: application/vnd.github.v3+json" \
+                        -d @payload.json \
+                        ${githubApiUrl}
+                    """
+                }
             }
         }
     }
