@@ -3,6 +3,6 @@ node{
         checkout scm
     }
     stage('print environment'){
-        echo "Build Parameters: ${params}"
+        echo "Build Parameters: ${env.BRANCH_NAME}"
     }
 }
