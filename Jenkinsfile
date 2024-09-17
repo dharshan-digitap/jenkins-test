@@ -2,6 +2,8 @@ import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
 
 node {
+    def payload
+
     stage('Print Event Info') {
         // Print the branch name from the webhook payload
         echo "Webhook Payload: ${env.x_github_event}"
@@ -9,11 +11,13 @@ node {
 
         // Parse the JSON payload
         def jsonSlurper = new JsonSlurper()
-        def payload = jsonSlurper.parseText(env.PAYLOAD)
+        payload = jsonSlurper.parseText(env.PAYLOAD)
         echo "Repository Name: ${payload.repository.name}"
         echo "Branch Name: ${payload.pull_request.head.ref}"
         echo "Commit SHA: ${payload.pull_request.head.sha}"
+    }
 
+    stage('Notify GitHub') {
         // Extract required information
         def repoName = payload.repository.full_name
         def commitSha = payload.pull_request.head.sha
@@ -34,24 +38,20 @@ node {
             context: context
         ]
 
-        // Convert the status payload to JSON string
+        // Convert the status payload to JSON
         def jsonPayload = JsonOutput.toJson(statusPayload)
 
         // Notify GitHub using the API
-        stage('Notify GitHub') {
-            withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
-                script {
-                    // Use 'sh' step directly with the JSON payload
-                    def curlCommand = """
-                    curl -X POST -H "Authorization: token ${GITHUB_TOKEN}" \
-                        -H "Accept: application/vnd.github.v3+json" \
-                        -d '${jsonPayload}' \
-                        ${githubApiUrl}
-                    """
-                    def result = sh(script: curlCommand, returnStdout: true).trim()
-                    echo "Curl result: ${result}"
-                }
-            }
+        withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
+            // Escape single quotes in JSON payload for shell command
+            def escapedJsonPayload = jsonPayload.replaceAll("'", "\\\\'")
+
+            sh """
+            curl -X POST -H "Authorization: token ${GITHUB_TOKEN}" \
+                -H "Accept: application/vnd.github.v3+json" \
+                -d '${escapedJsonPayload}' \
+                ${githubApiUrl}
+            """
         }
     }
 }
