@@ -1,9 +1,11 @@
 timeout(time: 2, unit: 'MINUTES') {
     node {
+        sh 'env'
+
         def recipient = 'dharshan.s@digitap.ai,pratik.patil@digitap.ai'
         def sender = 'alerts@digitap.ai'
         def body = """\
-            <p>Build Status: ${env.BUILD_STATUS}</p>
+            <p>Build Status: ${currentBuild.currentResult}</p>
             <p>Job Name: ${env.JOB_NAME}</p>
             <p>Build Number: ${env.BUILD_NUMBER}</p>
             <p>s3 signed object link at: <a href="${SIGNED_OBJECT_KEY_PATH}">${SIGNED_OBJECT_KEY_PATH}</a></p>
