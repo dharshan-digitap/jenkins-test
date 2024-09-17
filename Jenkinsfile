@@ -1,3 +1,4 @@
+timeout(time: 2, unit: 'MINUTES')
 node {
     def recipient = 'dharshan.s@digitap.ai,pratik.patil@digitap.ai'
     def sender = 'alerts@digitap.ai' // Specify the sender email address
@@ -17,7 +18,6 @@ node {
 
     try {
         stage('Dependencies Setup') {
-
             sh 'sudo apt-get install -y libssl-dev swig python3-dev gcc'
             sh 'python3 -m venv venv'
             sh '. venv/bin/activate && pip install --upgrade pip && pip3 install -r requirements.txt'
@@ -72,11 +72,12 @@ node {
         throw e
     } finally {
         // Send email notifications with the Email Extension Plugin
-        emailext subject: "${env.JOB_NAME} Pipeline Results: ${currentBuild.currentResult}",
-                 body: body,
-                 to: recipient,
-                 from: sender,
-                 attachLog: true,
-                 mimeType: 'text/html'
+//         emailext subject: "${env.JOB_NAME} Pipeline Results: ${currentBuild.currentResult}",
+//                  body: body,
+//                  to: recipient,
+//                  from: sender,
+//                  attachLog: true,
+//                  mimeType: 'text/html'
+       echo "Finished"
     }
 }
