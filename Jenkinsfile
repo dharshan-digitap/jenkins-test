@@ -15,9 +15,12 @@ node {
     env.TODAY_DATETIME = new Date().format('yyyy-MM-dd_HH:mm:ss')
     env.BUCKET_KEY = "base_code/lambda_function_${env.TODAY_DATETIME}.zip"
 
+    sh 'aws --version'
+    sh 'aws s3api list-buckets'
 
     try {
         stage('Build Zip') {
+            echo 'pwd'
             sh 'zip -r lambda_function.zip *'
         }
 
