@@ -17,12 +17,14 @@ node {
 
     try {
         stage('Dependencies Setup') {
-            sh 'apt list | grep awscli'
+            sh 'python3 -m venv venv'
+            sh '. venv/bin/activate && pip install --upgrade pip && pip3 install -r requirements.txt'
         }
 
         stage('Build Zip') {
             sh 'ls'
             sh 'zip -r lambda_function.zip *'
+            sh 'ls'
         }
 
         stage('Push to S3') {
