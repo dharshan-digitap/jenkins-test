@@ -41,13 +41,13 @@ node {
         stage('Notify GitHub') {
             withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
                 script {
-                    // Directly use the JSON string for the curl command
-                    sh """
-                    curl -X POST -H "Authorization: token ${GITHUB_TOKEN}" \
-                        -H "Accept: application/vnd.github.v3+json" \
-                        -d '${jsonPayload}' \
-                        ${githubApiUrl}
-                    """
+                    // Write the payload to a file to avoid serialization issues
+                    def file = new File("${JENKINS_HOME}/workspace/${JOB_NAME}/payload.json")
+                    file.text = jsonPayload
+
+                    // Use 'sh' step with returnStdout to avoid exposing secrets
+                    def result = sh(script: "curl -X POST -H \"Authorization: token ${GITHUB_TOKEN}\" -H \"Accept: application/vnd.github.v3+json\" -d @payload.json ${githubApiUrl}", returnStdout: true).trim()
+                    echo "Curl result: ${result}"
                 }
             }
         }
