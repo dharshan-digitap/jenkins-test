@@ -1,7 +1,7 @@
-timeout(time: 2, unit: 'MINUTES'){
+timeout(time: 2, unit: 'MINUTES') {
     node {
         def recipient = 'dharshan.s@digitap.ai,pratik.patil@digitap.ai'
-        def sender = 'alerts@digitap.ai' // Specify the sender email address
+        def sender = 'alerts@digitap.ai'
         def body = """\
             <p>Build Status: ${currentBuild.currentResult}</p>
             <p>Job Name: ${env.JOB_NAME}</p>
@@ -17,25 +17,16 @@ timeout(time: 2, unit: 'MINUTES'){
         env.BUCKET_KEY = "base_code/lambda_function_${env.TODAY_DATETIME}.zip"
 
         try {
-            stage('Dependencies Setup') {
-                sh 'sudo apt-get install -y libssl-dev swig python3-dev gcc'
-                sh 'python3 -m venv venv'
-                sh '. venv/bin/activate && pip install --upgrade pip && pip3 install -r requirements.txt'
+            stage('SCM') {
+                checkout scm
             }
 
             stage('Build Zip') {
-                sh 'ls'
                 sh 'zip -r lambda_function.zip *'
-                sh 'ls'
             }
 
             stage('Push to S3') {
-                sh """
-                    aws s3api put-object \
-                    --bucket ${env.BUCKET_NAME} \
-                    --key ${env.BUCKET_KEY} \
-                    --body lambda_function.zip
-                """
+                sh 'aws s3 cp lambda_function.zip s3://${env.BUCKET_NAME}/${env.BUCKET_KEY}
                 echo "Object URL: s3://${env.BUCKET_NAME}/${env.BUCKET_KEY}"
             }
 
@@ -45,11 +36,11 @@ timeout(time: 2, unit: 'MINUTES'){
                     --source "s3={bucketName=${env.BUCKET_NAME},key=${env.BUCKET_KEY},version='null'}" \
                     --destination "s3={bucketName=${env.BUCKET_NAME},prefix=signed_code/signed-}" \
                     --profile-name ${env.SIGNING_PROFILE}
-                    """, returnStdout: true)
+                """, returnStdout: true)
 
                 def SIGNING_JOB_ID = sh(script: """
-                                    echo "${response}" | grep '"jobId":' | cut -d'"' -f4
-                                    """, returnStdout: true) // delimiter - " -> [f1:,][f2:jobId][f3::][f4-jobIdValue]
+                    echo "${response}" | grep '"jobId":' | cut -d'"' -f4
+                """, returnStdout: true) // delimiter - " -> [f1:,][f2:jobId][f3::][f4-jobIdValue]
 
                 echo "Job ID: ${SIGNING_JOB_ID}"
 
@@ -57,28 +48,27 @@ timeout(time: 2, unit: 'MINUTES'){
                 echo "Signed object url: ${SIGNED_OBJECT_KEY}"
             }
 
-           stage('Dependencies Cleanup') {
-              sh '''
-                . venv/bin/activate || true
-                sudo apt-get remove --purge -y libssl-dev swig python3-dev gcc
-                sudo apt-get autoremove -y
-                sudo apt-get clean
-                deactivate
-                rm -rf venv
-              '''
-           }
+            stage('OWASP Dependency Check') {
+                def dependencyCheckHome = tool 'OWASP Dependency-Check Vulnerabilities';
+                sh "${dependencyCheckHome}/bin/dependency-check.sh --project EV_UANSTACK --scan . --format HTML --out dependency-check-report.html"
+            }
 
-        } catch (Exception e) {
+            stage('SonarQube Analysis') {
+                def scannerHome = tool 'SonarScanner';
+                withSonarQubeEnv() {
+                    sh "${scannerHome}/bin/sonar-scanner"
+                }
+            }
+        }
+        catch (Exception e) {
             throw e
         } finally {
-            // Send email notifications with the Email Extension Plugin
-    //         emailext subject: "${env.JOB_NAME} Pipeline Results: ${currentBuild.currentResult}",
-    //                  body: body,
-    //                  to: recipient,
-    //                  from: sender,
-    //                  attachLog: true,
-    //                  mimeType: 'text/html'
-           echo "Finished"
+            emailext subject: "${env.JOB_NAME} Pipeline Results: ${currentBuild.currentResult}",
+                   body: body,
+                   to: recipient,
+                   from: sender,
+                   attachLog: true,
+                   mimeType: 'text/html'
         }
     }
 }
