@@ -34,21 +34,18 @@ node {
             context: context
         ]
 
-        // Convert the status payload to JSON
+        // Convert the status payload to JSON string
         def jsonPayload = JsonOutput.toJson(statusPayload)
 
         // Notify GitHub using the API
         stage('Notify GitHub') {
             withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
                 script {
-                    // Write payload to a file to avoid serialization issues
-                    def file = new File("${JENKINS_HOME}/workspace/${JOB_NAME}/payload.json")
-                    file.text = jsonPayload
-
+                    // Directly use the JSON string for the curl command
                     sh """
                     curl -X POST -H "Authorization: token ${GITHUB_TOKEN}" \
                         -H "Accept: application/vnd.github.v3+json" \
-                        -d @payload.json \
+                        -d '${jsonPayload}' \
                         ${githubApiUrl}
                     """
                 }
