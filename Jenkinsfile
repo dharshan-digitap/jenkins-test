@@ -15,6 +15,8 @@ node {
     env.TODAY_DATETIME = new Date().format('yyyy-MM-dd_HH:mm:ss')
     env.BUCKET_KEY = "base_code/lambda_function_${env.TODAY_DATETIME}.zip"
 
+    sh 'pwd'
+    sh ' source root_venv/bin/activate'
     sh 'aws --version'
     sh 'aws s3api list-buckets'
 
