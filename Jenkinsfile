@@ -3,6 +3,6 @@ node{
         checkout scm
     }
     stage('print environment'){
-        echo ${{github.actor}}
+        echo ${github.actor}
     }
 }
