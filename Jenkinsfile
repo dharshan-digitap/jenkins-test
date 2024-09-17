@@ -8,6 +8,6 @@ node {
         def jsonSlurper = new JsonSlurper()
         def payload = jsonSlurper.parseText(env.PAYLOAD)
         echo "Repository Name: ${payload.repository.name}"
-
+           //
     }
 }
