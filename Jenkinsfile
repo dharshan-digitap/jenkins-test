@@ -15,14 +15,15 @@ node {
     env.TODAY_DATETIME = new Date().format('yyyy-MM-dd_HH:mm:ss')
     env.BUCKET_KEY = "base_code/lambda_function_${env.TODAY_DATETIME}.zip"
 
-    sh 'pwd'
-    sh ' source root_venv/bin/activate'
-    sh 'aws --version'
-    sh 'aws s3api list-buckets'
-
     try {
+        stage('Dependencies Setup') {
+              sh 'sudo apt-get install -y libssl-dev swig python3-dev gcc'
+              sh 'python3 -m venv venv'
+              sh '. venv/bin/activate && pip install --upgrade pip && pip3 install -r requirements.txt'
+        }
+
         stage('Build Zip') {
-            echo 'pwd'
+            sh 'ls'
             sh 'zip -r lambda_function.zip *'
         }
 
@@ -53,6 +54,17 @@ node {
             def SIGNED_OBJECT_KEY = "signed_code/signed-${env.TODAY_DATETIME}-${SIGNING_JOB_ID}.zip"
             echo "Signed object url: ${SIGNED_OBJECT_KEY}"
         }
+
+       stage('Dependencies Cleanup') {
+          sh '''
+            . venv/bin/activate || true
+            sudo apt-get remove --purge -y libssl-dev swig python3-dev gcc
+            sudo apt-get autoremove -y
+            sudo apt-get clean
+            deactivate
+            rm -rf venv
+          '''
+       }
 
     } catch (Exception e) {
         throw e
