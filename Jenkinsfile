@@ -6,10 +6,10 @@ node {
         def jsonSlurper = new JsonSlurper()
         def payload = jsonSlurper.parseText(payload_json)
 
-        def repoName = payload.repository.name
-        def branchName = payload.pull_request.head.ref
-        def commitSHA = payload.pull_request.head.sha
-        def gitAPIURL = payload.repository.url
+        def repoName = payload?.repository?.name ?: "Unknown Repository"
+        def branchName = payload?.pull_request?.head?.ref ?: "Unknown Branch"
+        def commitSHA = payload?.pull_request?.head?.sha ?: "Unknown SHA"
+        def gitAPIURL = payload?.repository?.url ?: "Unknown URL"
 
         // Post the build status to GitHub
         withCredentials([string(credentialsId: 'github-token-id', variable: 'GITHUB_TOKEN')]) {
