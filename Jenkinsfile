@@ -1,40 +1,39 @@
 node {
-        try {
-            def status = 'success'
-            def repoName = env.REPO_NAME
-            def branchName = env.BRANCH_NAME
-            def author = env.AUTHOR ?: 'default-author'
-            def commitSHA = env.COMMIT_SHA_FROM_PR ?: env.COMMIT_SHA_FROM_PUSH
+    try {
+        def status = 'success'
+        def repoName = env.REPO_NAME
+        def branchName = env.BRANCH_NAME
+        def author = env.AUTHOR ?: 'default-author'
+        def commitSHA = env.COMMIT_SHA_FROM_PR ?: env.COMMIT_SHA_FROM_PUSH
 
-            // Log extracted values
-            echo "event_type: ${env.x_github_event}"
-            echo "event_action: ${env.ACTION}"
-            echo "Repo name: ${repoName}"
-            echo "Repo author: ${author}"
-            echo "commit Sha: ${commitSHA}"
+        // Log extracted values
+        echo "event_type: ${env.x_github_event}"
+        echo "event_action: ${env.ACTION}"
+        echo "Repo name: ${repoName}"
+        echo "Repo author: ${author}"
+        echo "commit Sha: ${commitSHA}"
 
-            // stages
-
-            if (env.x_github_event == 'push' AND env.x_github_event == 'pull_request') {
-                stage('Code Scanning') {
-
-                    // Post the build status to GitHub
-                    postBuildStatusToGitHub(status, commitSHA)
+        // stages
+        if (env.x_github_event == 'push' || env.x_github_event == 'pull_request') {
+            stage('Code Scanning') {
+                // Post the build status to GitHub
+                postBuildStatusToGitHub(status, commitSHA)
             }
-
-            if(env.x_github_event == 'pull_request' AND env.ACTION == 'opened') {
-                stage('Deploy') {
-                    echo 'Deploying and code scanning'
-                }
-            }
-
-        } catch (Exception e) {
-            // If any exception occurs, mark the status as 'failure'
-            status = 'failure'
-            echo "Error occurred: ${e.message}"
-            // Optionally, you can send a failure status to GitHub even if the pipeline encounters an error
-            postBuildStatusToGitHub(status, env.COMMIT_SHA_FROM_PR ?: env.COMMIT_SHA_FROM_PUSH)
         }
+
+        if (env.x_github_event == 'pull_request' && env.ACTION == 'closed') {
+            stage('Deploy') {
+                echo 'Deploying and code scanning'
+                postBuildStatusToGitHub(status, commitSHA)
+            }
+        }
+
+    } catch (Exception e) {
+        // If any exception occurs, mark the status as 'failure'
+        status = 'failure'
+        echo "Error occurred: ${e.message}"
+        postBuildStatusToGitHub(status, env.COMMIT_SHA_FROM_PR ?: env.COMMIT_SHA_FROM_PUSH)
+    }
 }
 
 // Function to post build status to GitHub
