@@ -1,10 +1,9 @@
-node {
-    stage('Process Webhook and Post Status to GitHub') {
-        def status = 'success' // Default status
+if (env.x_github_event == 'push') {
+    node {
+        stage('Process Webhook and Post Status to GitHub') {
+            def status = 'success' // Default status
 
-        try {
-            // Check the GitHub event type
-            if (env.x_github_event == 'push') {
+            try {
                 // Extract values from environment variables
                 def repoName = env.REPO_NAME
                 def gitAPIURL = env.REPO_URL
@@ -17,20 +16,18 @@ node {
                 echo "Repo name: ${repoName}"
                 echo "Repo url: ${gitAPIURL}"
                 echo "Repo author: ${author}"
-                echo "commit Sha: ${commitSHA}"
+                echo "commit SHA: ${commitSHA}"
 
                 // Post the build status to GitHub
                 postBuildStatusToGitHub(status, env.BUILD_URL, gitAPIURL, commitSHA)
-            } else {
-                // Skip processing for non-push events
-                echo "Skipping pipeline execution for event type: ${env.x_github_event}"
+
+            } catch (Exception e) {
+                // If any exception occurs, mark the status as 'failure'
+                status = 'failure'
+                echo "Error occurred: ${e.message}"
+                // Optionally, send a failure status to GitHub even if the pipeline encounters an error
+                postBuildStatusToGitHub(status, env.BUILD_URL, gitAPIURL, commitSHA)
             }
-        } catch (Exception e) {
-            // If any exception occurs, mark the status as 'failure'
-            status = 'failure'
-            echo "Error occurred: ${e.message}"
-            // Optionally, you can send a failure status to GitHub even if the pipeline encounters an error
-            postBuildStatusToGitHub(status, env.BUILD_URL, env.REPO_URL, env.COMMIT_SHA_FROM_PR ?: env.COMMIT_SHA_FROM_PUSH)
         }
     }
 }
