@@ -75,7 +75,7 @@ node {
         status = 'failure'
         echo "Error occurred: ${e.message}"
     } finally {
-        if (env.x_github_event == 'pull_request' && env.ACTION == 'closed') {
+        if (env.x_github_event == 'pull_request') {
             postBuildStatusToGitHub(status, commitSHA)
         }
         sendEmailAlert(status)
