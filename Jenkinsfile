@@ -3,8 +3,8 @@ node {
         def status = 'success'
         def repoName = env.REPO_NAME
         def branchName = env.BRANCH_NAME
-        def author = env.AUTHOR ?: 'default-author'
-        def commitSHA = env.COMMIT_SHA_FROM_PR ?: env.COMMIT_SHA_FROM_PUSH
+        def author = env.AUTHOR ?: env.AUTHOR_NAME_FROM_PR
+        def commitSHA = env.COMMIT_SHA_FROM_PR
 
         // Log extracted values
         echo "event_type: ${env.x_github_event}"
