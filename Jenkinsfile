@@ -1,26 +1,23 @@
-import groovy.json.JsonSlurper
-
 node {
     stage('Process Webhook and Post Status to GitHub') {
-        // Print the branch name from the webhook payload
-        echo "Webhook Payload: ${env.PAYLOAD}"
+        // Print the webhook payload for reference
+//         echo "Webhook Payload: ${env.PAYLOAD}"
 
-        // Parse the JSON payload
-        def jsonSlurper = new JsonSlurper()
-        def payload = jsonSlurper.parseText(env.PAYLOAD)
-        def repoName = payload.repository.name
-        def branchName = payload.pull_request.head.ref
-        def commitSHA = payload.pull_request.head.sha
+        // Extract values from the PAYLOAD using 'jq' in shell commands
+        def repoName = sh(script: "echo '${env.PAYLOAD}' | jq -r '.repository.name'", returnStdout: true).trim()
+        def branchName = sh(script: "echo '${env.PAYLOAD}' | jq -r '.pull_request.head.ref'", returnStdout: true).trim()
+        def commitSHA = sh(script: "echo '${env.PAYLOAD}' | jq -r '.pull_request.head.sha'", returnStdout: true).trim()
+        def gitAPIURL = sh(script: "echo '${env.PAYLOAD}' | jq -r '.repository.url'", returnStdout: true).trim()
 
+        // Print the extracted information for debugging purposes
         echo "Repository Name: ${repoName}"
         echo "Branch Name: ${branchName}"
         echo "Commit SHA: ${commitSHA}"
 
         // Post the build status to GitHub
         withCredentials([string(credentialsId: 'github-token-id', variable: 'GITHUB_TOKEN')]) {
-            def gitAPIURL = payload.repository.url
             def buildURL = env.BUILD_URL
-            def status = 'success' // You can change this based on your pipeline result
+            def status = 'success' // You can modify this based on your build result
             def description = 'Build completed successfully'
             def context = 'continuous-integration/jenkins'
 
