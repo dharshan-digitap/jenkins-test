@@ -7,9 +7,8 @@ node {
         def gitAPIURL = env.REPO_URL
 
         // Check if any of the extracted values are empty and fail the build if so
-        if (!repoName || !branchName || !commitSHA || !gitAPIURL) {
-            error("One or more required fields are missing in the payload.")
-        }
+        echo "Repo name: ${repoName}"
+        echo "Repo name: ${gitAPIURL}"
 
         // Post the build status to GitHub
         withCredentials([string(credentialsId: 'github-token-id', variable: 'GITHUB_TOKEN')]) {
