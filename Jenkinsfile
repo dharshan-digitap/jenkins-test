@@ -1,9 +1,10 @@
-if (env.x_github_event == 'push') {
-    node {
-        stage('Process Webhook and Post Status to GitHub') {
-            def status = 'success' // Default status
+node {
+    stage('Process Webhook and Post Status to GitHub') {
+        def status = 'success' // Default status
 
-            try {
+        try {
+            // Check the GitHub event type
+            if (env.x_github_event == 'push') {
                 // Extract values from environment variables
                 def repoName = env.REPO_NAME
                 def gitAPIURL = env.REPO_URL
@@ -16,18 +17,17 @@ if (env.x_github_event == 'push') {
                 echo "Repo name: ${repoName}"
                 echo "Repo url: ${gitAPIURL}"
                 echo "Repo author: ${author}"
-                echo "commit SHA: ${env.COMMIT_SHA_FROM_PUSH}"
+                echo "commit Sha: ${commitSHA}"
 
                 // Post the build status to GitHub
                 postBuildStatusToGitHub(status, env.BUILD_URL, gitAPIURL, commitSHA)
-
-            } catch (Exception e) {
-                // If any exception occurs, mark the status as 'failure'
-                status = 'failure'
-                echo "Error occurred: ${e.message}"
-                // Optionally, send a failure status to GitHub even if the pipeline encounters an error
-                postBuildStatusToGitHub(status, env.BUILD_URL, gitAPIURL, commitSHA)
             }
+        } catch (Exception e) {
+            // If any exception occurs, mark the status as 'failure'
+            status = 'failure'
+            echo "Error occurred: ${e.message}"
+            // Optionally, you can send a failure status to GitHub even if the pipeline encounters an error
+            postBuildStatusToGitHub(status, env.BUILD_URL, env.REPO_URL, env.COMMIT_SHA_FROM_PR ?: env.COMMIT_SHA_FROM_PUSH)
         }
     }
 }
@@ -38,9 +38,9 @@ def postBuildStatusToGitHub(status, buildURL, gitAPIURL, commitSHA) {
         def description = status == 'success' ? 'Build completed successfully' : 'Build failed'
         def context = 'continuous-integration/jenkins'
 
-        // Post the status to GitHub using curl
+        // Use a secure method to handle secrets
         sh """
-            curl -X POST -H "Authorization: token $GITHUB_TOKEN" \
+            curl -X POST -H "Authorization: token \$GITHUB_TOKEN" \
             -H "Content-Type: application/json" \
             --data '{
                 "state": "${status}",
