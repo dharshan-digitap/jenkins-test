@@ -4,7 +4,7 @@ node {
 
         try {
             // Check the GitHub event type
-            if (env.x_github_event == 'push') {
+            if (env.x_github_event == 'pull-request' || env.x_github_event == 'push') {
                 // Extract values from environment variables
                 def repoName = env.REPO_NAME
                 def gitAPIURL = env.REPO_URL
