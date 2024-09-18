@@ -1,10 +1,10 @@
-import groovy.json.JsonSlurper
+import groovy.json.JsonSlurperClassic
 node {
     stage('Process Webhook and Post Status to GitHub') {
         def payload_json = env.PAYLOAD.
 
-        def jsonSlurper = new JsonSlurper()
-        def payload = jsonSlurper.parseText(payload_json)
+        def jsonSlurper = new JsonSlurperClassic()
+        payload = jsonSlurper.parseText(payloadJson)
 
         def repoName = payload?.repository?.name ?: "Unknown Repository"
         def branchName = payload?.pull_request?.head?.ref ?: "Unknown Branch"
