@@ -5,15 +5,15 @@ node {
     def payload
     stage('Print Event Info') {
         // Print the branch name from the webhook payload
-//         echo "Webhook Payload: ${env.x_github_event}"
-//         echo "Webhook Payload: ${env.PAYLOAD}"
+        echo "Webhook Payload: ${env.x_github_event}"
+        echo "Webhook Payload: ${env.PAYLOAD}"
 
         // Parse the JSON payload using a non-serializable method
-        def jsonSlurper = new JsonSlurper()
-        def payload = jsonSlurper.parseText(env.PAYLOAD)
-        echo "Repository Name: ${payload.repository.name}"
-        echo "Branch Name: ${payload.pull_request.head.ref}"
-        echo "Commit SHA: ${payload.pull_request.head.sha}"
+//         def jsonSlurper = new JsonSlurper()
+//         def payload = jsonSlurper.parseText(env.PAYLOAD)
+//         echo "Repository Name: ${payload.repository.name}"
+//         echo "Branch Name: ${payload.pull_request.head.ref}"
+//         echo "Commit SHA: ${payload.pull_request.head.sha}"
     }
 
 //     stage('Notify GitHub') {
