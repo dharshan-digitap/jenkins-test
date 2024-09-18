@@ -1,10 +1,10 @@
 node {
     stage('Process Webhook and Post Status to GitHub') {
         // Extract values using jq from the environment variable directly
-        def repoName = sh(script: 'echo "${PAYLOAD}" | jq -r ".repository.name"', returnStdout: true).trim()
-        def branchName = sh(script: 'echo "${PAYLOAD}" | jq -r ".pull_request.head.ref"', returnStdout: true).trim()
-        def commitSHA = sh(script: 'echo "${PAYLOAD}" | jq -r ".pull_request.head.sha"', returnStdout: true).trim()
-        def gitAPIURL = sh(script: 'echo "${PAYLOAD}" | jq -r ".repository.url"', returnStdout: true).trim()
+        def repoName = env.REPO_NAME
+//         def branchName = sh(script: 'echo "${PAYLOAD}" | jq -r ".pull_request.head.ref"', returnStdout: true).trim()
+//         def commitSHA = sh(script: 'echo "${PAYLOAD}" | jq -r ".pull_request.head.sha"', returnStdout: true).trim()
+        def gitAPIURL = env.REPO_URL
 
         // Check if any of the extracted values are empty and fail the build if so
         if (!repoName || !branchName || !commitSHA || !gitAPIURL) {
