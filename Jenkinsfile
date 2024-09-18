@@ -16,7 +16,7 @@ if (env.x_github_event == 'push') {
                 echo "Repo name: ${repoName}"
                 echo "Repo url: ${gitAPIURL}"
                 echo "Repo author: ${author}"
-                echo "commit SHA: ${commitSHA}"
+                echo "commit SHA: ${env.COMMIT_SHA_FROM_PUSH}"
 
                 // Post the build status to GitHub
                 postBuildStatusToGitHub(status, env.BUILD_URL, gitAPIURL, commitSHA)
