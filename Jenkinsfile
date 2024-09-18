@@ -1,10 +1,15 @@
+import groovy.json.JsonSlurper
 node {
     stage('Process Webhook and Post Status to GitHub') {
-        def payload = env.PAYLOAD.
-        def repoName = sh(script: "echo ${payload} | jq -r '.repository.name' > /dev/null 2>&1", returnStdout: true).trim()
-        def branchName = sh(script: "echo ${payload} | jq -r '.pull_request.head.ref' > /dev/null 2>&1", returnStdout: true).trim()
-        def commitSHA = sh(script: "echo ${payload} | jq -r '.pull_request.head.sha' > /dev/null 2>&1", returnStdout: true).trim()
-        def gitAPIURL = sh(script: "echo ${payload} | jq -r '.repository.url' > /dev/null 2>&1", returnStdout: true).trim()
+        def payload_json = env.PAYLOAD.
+
+        def jsonSlurper = new JsonSlurper()
+        def payload = jsonSlurper.parseText(payload_json)
+
+        def repoName = payload.repository.name
+        def branchName = payload.pull_request.head.ref
+        def commitSHA = payload.pull_request.head.sha
+        def gitAPIURL = payload.repository.url
 
         // Post the build status to GitHub
         withCredentials([string(credentialsId: 'github-token-id', variable: 'GITHUB_TOKEN')]) {
