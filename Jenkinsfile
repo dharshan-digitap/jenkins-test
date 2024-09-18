@@ -14,14 +14,14 @@ node {
         echo "commit Sha: ${commitSHA}"
 
         // stages
-        if (env.x_github_event == 'push' || env.x_github_event == 'pull_request') {
+        if (env.x_github_event == 'push') {
             stage('Code Scanning') {
                 // Post the build status to GitHub
-                postBuildStatusToGitHub(status, commitSHA)
+                echo 'code scanning and building and testing'
             }
         }
 
-        if (env.x_github_event == 'pull_request' && env.ACTION == 'closed') {
+        if (env.x_github_event == 'pull_request' && env.ACTION == 'opened') {
             stage('Deploy') {
                 echo 'Deploying and code scanning'
                 postBuildStatusToGitHub(status, commitSHA)
