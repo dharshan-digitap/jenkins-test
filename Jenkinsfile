@@ -10,6 +10,7 @@ node {
         def commitSHA = env.COMMIT_SHA_FROM_PR ?: env.COMMIT_SHA_FROM_PUSH
 
         // Check if any of the extracted values are empty and fail the build if so
+        echo "event_type: ${env.x_github_event}"
         echo "Repo name: ${repoName}"
         echo "Repo url: ${gitAPIURL}"
         echo "Repo author: ${author}"
