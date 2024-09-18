@@ -7,7 +7,7 @@ node {
             if (env.x_github_event == 'pull_request') {
                 // Extract values from environment variables
                 def repoName = env.REPO_NAME
-                def gitAPIURL = env.REPO_URL
+                def gitAPIURL = env.REPO_URL$
                 def branchName = env.BRANCH_NAME
                 def author = env.AUTHOR ?: 'default-author'
                 def commitSHA = env.COMMIT_SHA_FROM_PR ?: env.COMMIT_SHA_FROM_PUSH
