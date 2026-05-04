@@ -1,64 +1,27 @@
 node('asg-workers') {
-    stage('Process Webhook and Post Status to GitHub') {
-        try {
-runTest {
 
-    echo "Running on node:"
-    sh 'hostname -i'
+    stage('Run ECR Image in Docker Agent') {
 
-    sh '''
-        echo "===== NETWORK DEBUG ====="
-        ip addr || true
+        docker.image('959812570231.dkr.ecr.ap-south-1.amazonaws.com/platform/jenkins-worker-agent:latest')
+              .inside {
 
-        echo "===== DNS CHECK ====="
-        getent hosts mysql || true
-        getent hosts redis || true
+            stage('Verify Environment') {
+                sh '''
+                    echo "Inside container"
+                    whoami || true
+                    hostname
+                '''
+            }
 
-        echo "===== MYSQL TEST ====="
-        python - <<EOF
-import pymysql
-import time
+            stage('Check Tools') {
+                sh '''
+                    java -version || true
+                    git --version || true
+                    aws --version || true
+                    docker --version || true
+                '''
+            }
 
-for i in range(5):
-    try:
-        conn = pymysql.connect(
-            host="mysql",
-            user="root",
-            password="mysql_root_password",
-            database="testdb"
-        )
-        print("MySQL Connected ✅")
-        conn.close()
-        break
-    except Exception as e:
-        print("Retrying MySQL...", e)
-        time.sleep(2)
-else:
-    raise Exception("MySQL connection failed ❌")
-EOF
-
-        echo "===== REDIS TEST ====="
-        python - <<EOF
-import redis
-import time
-
-for i in range(5):
-    try:
-        r = redis.Redis(host="redis", port=6379)
-        r.ping()
-        print("Redis Connected ✅")
-        break
-    except Exception as e:
-        print("Retrying Redis...", e)
-        time.sleep(2)
-else:
-    raise Exception("Redis connection failed ❌")
-EOF
-    '''
-}
-        } catch (Exception e) {
-            status = 'failure'
-            echo "Error occurred: ${e.message}"
         }
     }
 }
