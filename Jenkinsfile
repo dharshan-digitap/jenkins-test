@@ -12,7 +12,15 @@ node('asg-workers') {
     stage('Pytest') {
         runTest {
             sh '''
-            pip install -r requirements.txt
+            echo "PWD: $(pwd)"
+            ls -la
+            '''
+
+            // Safe pip install in root container user
+            sh '''
+            export HOME=/tmp
+            export PATH=$HOME/.local/bin:$PATH
+            pip install --user -r requirements.txt
             pytest -v
             '''
         }
