@@ -18,17 +18,19 @@ node('asg-workers') {
 //     }
 
     stage('SonarQube Analysis') {
-        def scannerHome = tool 'SonarScanner'
+        throttle(['dev-build-throttle']) {
+            def scannerHome = tool 'SonarScanner'
 
-        withSonarQubeEnv('sonarqube') {
-            withCredentials([string(credentialsId: 'sonartoken', variable: 'SONAR_TOKEN')]) {
-                sh """
-                    ${scannerHome}/bin/sonar-scanner \
-                      -Dsonar.projectKey=my-python-app \
-                      -Dsonar.sources=. \
-                      -Dsonar.host.url=http://10.0.3.217:9000 \
-                      -Dsonar.token=$SONAR_TOKEN
-                """
+            withSonarQubeEnv('sonarqube') {
+                withCredentials([string(credentialsId: 'sonartoken', variable: 'SONAR_TOKEN')]) {
+                    sh """
+                        ${scannerHome}/bin/sonar-scanner \
+                        -Dsonar.projectKey=my-python-app \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=http://10.0.3.217:9000 \
+                        -Dsonar.token=$SONAR_TOKEN
+                    """
+                }
             }
         }
     }
