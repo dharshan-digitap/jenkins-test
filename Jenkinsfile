@@ -10,7 +10,10 @@ node('asg-workers') {
     }
 
     stage('Pytest') {
+    runTest {
        sh 'echo hello'
+    }
+
     }
 
     stage('Post-Cleanup') {
