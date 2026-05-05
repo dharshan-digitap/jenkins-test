@@ -26,7 +26,7 @@ node('asg-workers') {
                     ${scannerHome}/bin/sonar-scanner \
                       -Dsonar.projectKey=my-python-app \
                       -Dsonar.sources=. \
-                      -Dsonar.host.url=http://sonarqube:9000 \
+                      -Dsonar.host.url=http://10.0.3.217:9000 \
                       -Dsonar.token=$SONAR_TOKEN
                 """
             }
