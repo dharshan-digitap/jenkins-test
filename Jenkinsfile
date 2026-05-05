@@ -1,5 +1,9 @@
 node('asg-workers') {
 
+    stage('Checkout') {
+        checkout scm
+    }
+
     stage('pytest') {
         runTest {
             sh '''
