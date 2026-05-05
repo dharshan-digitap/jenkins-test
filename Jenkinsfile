@@ -1,7 +1,11 @@
 node('asg-workers') {
-    stage('test') {
+
+    stage('pytest') {
         runTest {
-            sh "echo Hello from inside test container"
+            sh '''
+            pip install -r requirements.txt
+            pytest -v
+            '''
         }
     }
 }

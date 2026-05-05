@@ -1,2 +1,5 @@
 awscli
 boto3
+pytest
+redis
+mysql-connector-python
