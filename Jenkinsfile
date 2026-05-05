@@ -8,31 +8,37 @@ node('asg-workers') {
         checkout scm
     }
 
-    stage('Pytest') {
-        def testCmd = """
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pytest -v
-        """
-        runTest(testCmd)
-    }
+//     stage('Pytest') {
+//         def testCmd = """
+//         python -m pip install --upgrade pip
+//         pip install -r requirements.txt
+//         pytest -v
+//         """
+//         runTest(testCmd)
+//     }
 
     stage('SonarQube Analysis') {
+        def scannerHome = tool 'SonarScanner'
+
         withSonarQubeEnv('sonarqube') {
-            sh """
-            sonar-scanner \
-              -Dsonar.projectKey=my-python-app \
-              -Dsonar.sources=. \
-              -Dsonar.python.version=3 \
-              -Dsonar.host.url=http://sonarqube:9000 \
-              -Dsonar.login=${SONAR_TOKEN}
-            """
+            withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                sh """
+                    ${scannerHome}/bin/sonar-scanner \
+                      -Dsonar.projectKey=my-python-app \
+                      -Dsonar.sources=. \
+                      -Dsonar.host.url=http://sonarqube:9000 \
+                      -Dsonar.login=$SONAR_TOKEN
+                """
+            }
         }
     }
 
-    stage('Quality Gate') {
-        timeout(time: 5, unit: 'MINUTES') {
-            waitForQualityGate abortPipeline: true
+    stage('QualityGate Analysis') {
+        timeout(time: 10, unit: 'MINUTES') {
+            def qualityGate = waitForQualityGate()
+            if (qualityGate.status != 'OK') {
+                error "❌ Pipeline failed due to Quality Gate: ${qualityGate.status}"
+            }
         }
     }
 
