@@ -10,13 +10,14 @@ node('asg-workers') {
     }
 
     stage('Pytest') {
-    runTest {
-       sh '''
-       pip install -r requirements.txt
-       pytest -v
-       '''
-    }
 
+        def testCmd = """
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pytest -v
+        """
+
+        runTest(testCmd)
     }
 
     stage('Post-Cleanup') {
