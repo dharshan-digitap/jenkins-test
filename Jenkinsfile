@@ -27,7 +27,7 @@ node('asg-workers') {
                       -Dsonar.projectKey=my-python-app \
                       -Dsonar.sources=. \
                       -Dsonar.host.url=http://sonarqube:9000 \
-                      -Dsonar.login=$SONAR_TOKEN
+                      -Dsonar.token=$SONAR_TOKEN
                 """
             }
         }
