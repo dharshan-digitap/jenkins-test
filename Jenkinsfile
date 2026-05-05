@@ -21,7 +21,7 @@ node('asg-workers') {
         def scannerHome = tool 'SonarScanner'
 
         withSonarQubeEnv('sonarqube') {
-            withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+            withCredentials([string(credentialsId: 'sonartoken', variable: 'SONAR_TOKEN')]) {
                 sh """
                     ${scannerHome}/bin/sonar-scanner \
                       -Dsonar.projectKey=my-python-app \
