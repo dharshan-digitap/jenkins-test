@@ -17,6 +17,13 @@ node('asg-workers') {
 //         runTest(testCmd)
 //     }
 
+    stage('SonarQube Debug throttle') {
+        throttle(['dev-build-throttle']) {
+            echo "ENTERED THROTTLE: ${env.BUILD_NUMBER} at ${new Date()}"
+            sh "sleep 120"
+        }
+    }
+
     stage('SonarQube Analysis') {
         throttle(['dev-build-throttle']) {
             def scannerHome = tool 'SonarScanner'
