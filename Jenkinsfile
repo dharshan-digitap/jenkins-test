@@ -27,6 +27,10 @@ node('asg-workers') {
         runTest(testCmd)
     }
 
+    stage('Vuln Checks') {
+        runVulnerabilityChecks()
+    }
+
     stage('Post-Cleanup') {
         cleanWs()
     }
