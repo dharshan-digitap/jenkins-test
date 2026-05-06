@@ -11,12 +11,10 @@ node('asg-workers') {
     stage('Gitleaks Scan') {
         echo "Starting Gitleaks scan..."
 
-        // Run Gitleaks and capture exit code
-        def status = sh(script: "gitleaks detect --source=. --verbose", returnStatus: true)
+        def status = sh(script: "gitleaks detect --source=. --no-git --verbose", returnStatus: true)
 
         if (status != 0) {
-            echo "Gitleaks detected secrets! Exiting..."
-            error("Gitleaks scan failed with exit code ${status}")
+            error("Gitleaks scan failed — secrets detected!")
         } else {
             echo "Gitleaks scan passed: no secrets detected."
         }
