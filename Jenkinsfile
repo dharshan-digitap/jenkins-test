@@ -8,6 +8,14 @@ node('asg-workers') {
         checkout scm
     }
 
+    stage('Gitleaks Scan') {
+        echo "Starting Gitleaks scan..."
+        // Adjust path if Gitleaks is installed elsewhere
+        sh """
+        gitleaks detect --source=. --verbose
+        """
+    }
+
 //     stage('Pytest') {
 //         def testCmd = """
 //         python -m pip install --upgrade pip
