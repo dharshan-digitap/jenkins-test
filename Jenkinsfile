@@ -8,32 +8,25 @@ node('asg-workers') {
         checkout scm
     }
 
-    stage('Trivy dependency vulnerability check') {
-        // Use credentials to get the template content
+    stage('Trivy Dependency Vulnerability Check') {
         withCredentials([string(credentialsId: 'trivy-html-template', variable: 'TRIVY_TEMPLATE_CONTENT')]) {
-
-            // Write the template to a .tpl file (required by Trivy)
             def templateFile = "${env.WORKSPACE}/trivy-template.tpl"
             writeFile file: templateFile, text: TRIVY_TEMPLATE_CONTENT
 
-            // Run Trivy
-            sh """
-                trivy fs --scanners vuln . \\
-                    --format template --template ${templateFile} \\
-                    -o dependency_vulnerability_report.html \\
+            def status = sh(script: """
+                trivy fs --scanners vuln . \
+                    --format template --template @${templateFile} \
+                    -o dependency_vulnerability_report.html \
                     --exit-code 1 --severity CRITICAL,HIGH,MEDIUM
-            """
+            """, returnStatus: true)
 
-            // If no vulnerabilities found, write a simple message
-            sh """
-                if [ ! -s dependency_vulnerability_report.html ]; then
-                    echo "No dependency vulnerabilities found" > dependency_vulnerability_report.html
-                fi
-            """
+            if (status != 0) {
+                archiveArtifacts artifacts: 'dependency_vulnerability_report.html'
+                error("Trivy found CRITICAL/HIGH/MEDIUM vulnerabilities! Check dependency_vulnerability_report.html in artifacts.")
+            } else {
+                echo "Trivy scan passed: no CRITICAL/HIGH/MEDIUM vulnerabilities found."
+            }
         }
-
-        // Archive the report
-        archiveArtifacts artifacts: 'dependency_vulnerability_report.html', fingerprint: true
     }
 
 //     stage('Pytest') {
