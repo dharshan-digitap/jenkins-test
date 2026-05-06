@@ -10,10 +10,16 @@ node('asg-workers') {
 
     stage('Gitleaks Scan') {
         echo "Starting Gitleaks scan..."
-        // Adjust path if Gitleaks is installed elsewhere
-        sh """
-        gitleaks detect --source=. --verbose
-        """
+
+        // Run Gitleaks and capture exit code
+        def status = sh(script: "gitleaks detect --source=. --verbose", returnStatus: true)
+
+        if (status != 0) {
+            echo "Gitleaks detected secrets! Exiting..."
+            error("Gitleaks scan failed with exit code ${status}")
+        } else {
+            echo "Gitleaks scan passed: no secrets detected."
+        }
     }
 
     stage('Pytest') {
