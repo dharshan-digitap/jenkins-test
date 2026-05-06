@@ -3,4 +3,3 @@ boto3
 pytest
 redis
 mysql-connector-python
-urllib3==1.26.2
