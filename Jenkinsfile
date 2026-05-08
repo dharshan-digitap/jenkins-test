@@ -21,6 +21,7 @@ node('asg-workers') {
                           -Dsonar.host.url=http://10.0.3.217:9000 \
                           -Dsonar.token=$SONAR_TOKEN
                     """
+                    sh 'sleep 60'
                 }
             }
         }
