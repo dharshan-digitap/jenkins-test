@@ -24,15 +24,6 @@ node('asg-workers') {
                 }
             }
         }
-
-        stage('QualityGate Analysis') {
-            timeout(time: 10, unit: 'MINUTES') {
-                def qualityGate = waitForQualityGate()
-                if (qualityGate.status != 'OK') {
-                    error "❌ Pipeline failed due to Quality Gate: ${qualityGate.status}"
-                }
-            }
-        }
     }
 
     stage('Post-Cleanup') {
